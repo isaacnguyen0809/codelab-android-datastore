@@ -16,14 +16,22 @@
 
 package com.codelab.android.datastore.ui
 
+import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.codelab.android.datastore.data.SortOrder
 import com.codelab.android.datastore.data.TasksRepository
 import com.codelab.android.datastore.data.UserPreferencesRepository
 import com.codelab.android.datastore.databinding.ActivityTasksBinding
+
+private const val USER_PREFERENCES_NAME = "user_preferences_name"
+
+private val Context.dataStore by preferencesDataStore(
+    name = USER_PREFERENCES_NAME,
+)
 
 class TasksActivity : AppCompatActivity() {
 
@@ -37,27 +45,18 @@ class TasksActivity : AppCompatActivity() {
         binding = ActivityTasksBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
-
         viewModel = ViewModelProvider(
-            this,
-            TasksViewModelFactory(TasksRepository, UserPreferencesRepository.getInstance(this))
+            this, TasksViewModelFactory(TasksRepository, UserPreferencesRepository(dataStore))
         )[TasksViewModel::class.java]
 
         setupRecyclerView()
-        setupFilterListeners(viewModel)
-        setupSort()
 
         viewModel.tasksUiModel.observe(this) { tasksUiModel ->
             adapter.submitList(tasksUiModel.tasks)
-            updateSort(tasksUiModel.sortOrder)
-            binding.showCompletedSwitch.isChecked = tasksUiModel.showCompleted
+            updateUIFilter(tasksUiModel.sortOrder, tasksUiModel.showCompleted)
+            setupFilterListener()
         }
-    }
 
-    private fun setupFilterListeners(viewModel: TasksViewModel) {
-        binding.showCompletedSwitch.setOnCheckedChangeListener { _, checked ->
-            viewModel.showCompletedTasks(checked)
-        }
     }
 
     private fun setupRecyclerView() {
@@ -68,7 +67,10 @@ class TasksActivity : AppCompatActivity() {
         binding.list.adapter = adapter
     }
 
-    private fun setupSort() {
+    private fun setupFilterListener() {
+        binding.showCompletedSwitch.setOnCheckedChangeListener { _, checked ->
+            viewModel.showCompletedTasks(checked)
+        }
         binding.sortDeadline.setOnCheckedChangeListener { _, checked ->
             viewModel.enableSortByDeadline(checked)
         }
@@ -77,7 +79,8 @@ class TasksActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateSort(sortOrder: SortOrder) {
+    private fun updateUIFilter(sortOrder: SortOrder, showCompleted: Boolean) {
+        binding.showCompletedSwitch.isChecked = showCompleted
         binding.sortDeadline.isChecked =
             sortOrder == SortOrder.BY_DEADLINE || sortOrder == SortOrder.BY_DEADLINE_AND_PRIORITY
         binding.sortPriority.isChecked =
