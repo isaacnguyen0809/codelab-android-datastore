@@ -16,14 +16,29 @@
 
 package com.codelab.android.datastore.ui
 
+import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.datastore.core.DataStore
+import androidx.datastore.dataStore
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
-import com.codelab.android.datastore.data.SortOrder
+import com.codelab.android.datastore.UserPreferences
+import com.codelab.android.datastore.UserPreferences.SortOrder
 import com.codelab.android.datastore.data.TasksRepository
 import com.codelab.android.datastore.data.UserPreferencesRepository
+import com.codelab.android.datastore.data.UserPreferencesSerializer
 import com.codelab.android.datastore.databinding.ActivityTasksBinding
+import kotlinx.coroutines.flow.collect
+
+private const val USER_PREFERENCES_NAME = "user_preferences"
+private const val DATASTORE_FILE_NAME = "user_prefs.pb"
+private const val SORT_ORDER = "sort_order"
+
+private val Context.userPreferencesStore: DataStore<UserPreferences> by dataStore(
+    fileName = DATASTORE_FILE_NAME,
+    serializer = UserPreferencesSerializer
+)
 
 class TasksActivity : AppCompatActivity() {
 
@@ -40,7 +55,11 @@ class TasksActivity : AppCompatActivity() {
 
         viewModel = ViewModelProvider(
             this,
-            TasksViewModelFactory(TasksRepository, UserPreferencesRepository.getInstance(this))
+            TasksViewModelFactory(
+                TasksRepository, UserPreferencesRepository(
+                    userPreferencesStore
+                )
+            )
         )[TasksViewModel::class.java]
 
         setupRecyclerView()
