@@ -16,6 +16,7 @@
 
 package com.codelab.android.datastore.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asLiveData
@@ -47,6 +48,7 @@ class TasksViewModel(
         repository.tasks,
         userPreferencesFlow
     ) { tasks: List<Task>, prefs: UserPreferences ->
+        Log.d("DUCKHANH", "user: $prefs")
         TasksUiModel(
             tasks = filterSortTasks(tasks, prefs.showCompleted, prefs.sortOrder),
             showCompleted = prefs.showCompleted,
@@ -89,12 +91,14 @@ class TasksViewModel(
     fun enableSortByDeadline(enable: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.enableSortByDeadline(enable)
+            userPreferencesRepository.updateAppSettingTest(enable)
         }
     }
 
     fun enableSortByPriority(enable: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.enableSortByPriority(enable)
+            userPreferencesRepository.updateAppSetting(enable)
         }
     }
 }

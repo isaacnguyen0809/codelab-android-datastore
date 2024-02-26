@@ -27,7 +27,7 @@ import java.io.IOException
  * Class that handles saving and retrieving user preferences
  */
 class UserPreferencesRepository(
-    private val userPreferDataStore: DataStore<UserPreferences>
+    private val userPreferDataStore: DataStore<UserPreferences>,
 ) {
 
     val userPreferencesFlow: Flow<UserPreferences> = userPreferDataStore.data
@@ -42,6 +42,20 @@ class UserPreferencesRepository(
     suspend fun updateShowCompleted(showCompleted: Boolean) {
         userPreferDataStore.updateData { prefs ->
             prefs.toBuilder().setShowCompleted(showCompleted).build()
+
+        }
+    }
+
+    suspend fun updateAppSetting(showFirstTime: Boolean) {
+        userPreferDataStore.updateData { prefs ->
+            prefs.toBuilder().setAppSetting(prefs.appSetting.toBuilder().setIsShowFirstTime(showFirstTime).build())
+                .build()
+        }
+    }
+
+    suspend fun updateAppSettingTest(isTested: Boolean) {
+        userPreferDataStore.updateData { prefs ->
+            prefs.toBuilder().setAppSetting(prefs.appSetting.toBuilder().setIsTested(isTested).build()).build()
         }
     }
 

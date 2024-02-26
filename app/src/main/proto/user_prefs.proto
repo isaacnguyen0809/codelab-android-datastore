@@ -17,5 +17,11 @@ message UserPreferences {
 
   // user selected tasks sorting order
   SortOrder sort_order = 2;
+
+  AppSetting app_setting = 3;
+}
+message AppSetting {
+  bool isShowFirstTime = 1;
+  bool isTested = 2;
 }
 
